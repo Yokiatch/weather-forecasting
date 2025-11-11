@@ -10,7 +10,7 @@ st.markdown("Enter the latest weather parameters below to predict the next day's
 model = joblib.load("models/xgb_model.pkl")
 scaler = joblib.load("models/scaler.pkl")
 
-humidity = st.number_input("Humidity (%)", 0.0, 100.0, 70.0)
+humidity = st.number_input("Humidity (%)", 0.0, 100.0, 70.0) 
 pressure = st.number_input("Pressure (hPa)", 900.0, 1100.0, 1012.0)
 windspeed = st.number_input("Wind Speed (km/h)", 0.0, 50.0, 8.0)
 
