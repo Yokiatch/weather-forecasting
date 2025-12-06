@@ -1,10 +1,14 @@
-## Current Progress
-- Data preprocessing and feature engineering implemented
-- XGBoost model trained with lag features
-- FastAPI endpoint for real-time weather prediction
-- Model evaluation script added with performance visualization
+# Setup
+python -m venv venv
+venv\Scripts\activate   # windows
+pip install -r requirements.txt
 
-Next Steps:
-- Add frontend (Streamlit)
-- Hyperparameter tuning and model comparison
-- Write research paper on forecasting performance
+# If data missing, place data/weather.csv (contains columns: date,temp,humidity,pressure,windspeed)
+python scripts/train_model.py   # trains and creates models/
+python scripts/evaluate_model.py  # saves results/performance_plot.png
+
+# Run API
+uvicorn app.main:app --reload
+
+# Run Streamlit demo
+streamlit run app/streamlit_app.py
