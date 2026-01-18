@@ -66,12 +66,19 @@ mae = mean_absolute_error(y_test, pred)
 mse = mean_squared_error(y_test, pred)
 rmse = np.sqrt(mse)
 
+# Calculate prediction uncertainty (standard deviation of errors)
+residuals = y_test - pred
+uncertainty = np.std(residuals)
+print(f"Prediction uncertainty (std dev): {uncertainty:.4f}")
+
+
 print(f"MAE: {mae:.4f}, RMSE: {rmse:.4f}")
 
 # Save model and scaler
 os.makedirs('models', exist_ok=True)
 joblib.dump(model, 'models/xgb_model.pkl', compress=3)
 joblib.dump(scaler, 'models/scaler.pkl', compress=3)
+joblib.dump(uncertainty, 'models/uncertainty.pkl')
 print("Model saved to models/")
 
 # Save metrics and sample predictions
