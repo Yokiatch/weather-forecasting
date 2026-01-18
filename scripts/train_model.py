@@ -27,7 +27,7 @@ else:
         raise ValueError("Some 'date' values could not be parsed. Fix formats in data/weather.csv")
 
 # Ensure required columns exist
-for col in ['temp', 'humidity', 'pressure', 'windspeed']:
+for col in ['temp', 'humidity', 'windspeed']:
     if col not in df.columns:
         raise ValueError(f"Required column '{col}' is missing from {DATA_PATH}")
 
