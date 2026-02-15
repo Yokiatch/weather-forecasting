@@ -1,0 +1,9 @@
+services:
+  weather-app:
+    build: .
+    container_name: weather-forecast-container
+    ports:
+      - "8501:8501"
+    # We removed 'volumes' to ensure Docker uses the files ALREADY inside the image
+    environment:
+      - PYTHONUNBUFFERED=1
