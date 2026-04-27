@@ -15,7 +15,7 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/current_weather');
+        const response = await axios.get('https://weather-forecasting-5o4n.onrender.com/api/current_weather');
         setCurrentWeather(response.data.data);
       } catch (error) {
         console.error("Failed to fetch weather:", error);
@@ -37,7 +37,8 @@ export default function App() {
         humidity: currentWeather.humidity,
         cloudcover: currentWeather.cloud_cover
       };
-      const response = await axios.post('https://weather-forecasting-5o4n.onrender.com/api/current_weather', payload);
+      const response = await axios.post('https://weather-forecasting-5o4n.onrender.com/api/predict_7_days', payload);
+      
       setForecast(response.data.forecast);
     } catch (error) {
       console.error("Prediction failed:", error);
