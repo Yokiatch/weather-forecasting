@@ -37,7 +37,7 @@ export default function App() {
         humidity: currentWeather.humidity,
         cloudcover: currentWeather.cloud_cover
       };
-      const response = await axios.post('http://localhost:8000/api/predict_7_days', payload);
+      const response = await axios.post('https://weather-forecasting-5o4n.onrender.com/api/current_weather', payload);
       setForecast(response.data.forecast);
     } catch (error) {
       console.error("Prediction failed:", error);
