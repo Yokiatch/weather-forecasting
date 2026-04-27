@@ -1,10 +1,14 @@
 services:
-  weather-app:
+  backend:
     build: .
-    container_name: weather-forecast-container
     ports:
-      - "8501:8501"
-    environment:
-      - STREAMLIT_BROWSER_SERVER_ADDRESS=localhost
-      - PYTHONUNBUFFERED=1
-    # Note: 'volumes' removed as per your requirement to use image-internal files
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
