@@ -1,112 +1,109 @@
-Weather Forecasting System
-Live Data Anchored, Uncertainty-Aware, 7-Day Temperature Forecasting
+Uncertainty-Aware Weather Forecasting System
+
+Live Data Anchored, 7-Day Forecasting with Machine Learning & React
+
 📌 Project Overview
 
-This project is a machine learning–based weather forecasting system designed to predict the next 7 days of temperature using historical learning, live weather anchoring, and uncertainty estimation.
+This project is a machine learning–based weather forecasting system designed to predict the next 7 days of temperature using:
+
+Historical learning
+Live weather anchoring
+Uncertainty estimation
 
 Unlike traditional student projects that rely on static datasets or single-point predictions, this system:
 
-Anchors forecasts to real-time weather data
-
+Anchors forecasts to real-time weather data via Open-Meteo
 Uses recursive multi-step forecasting to predict future days
-
 Explicitly models prediction uncertainty using residual error analysis
+Presents results through a decoupled FastAPI backend and a modern, glassmorphic React/Tailwind UI
 
-Presents results through a FastAPI backend and a Streamlit-based UI
-
-The project is suitable for academic research, capstone evaluation, and demonstration of applied ML system design.
+The project is suitable for academic research, capstone evaluation, and demonstrating applied ML system design.
 
 🎯 Problem Statement
 
-Most beginner weather forecasting projects suffer from the following limitations:
+Most beginner weather forecasting projects suffer from:
 
 Reliance on static datasets that do not reflect real-world conditions
-
 Providing single deterministic predictions without communicating reliability
-
 Exposing internal ML features (e.g., lag variables) directly to users
-
-Lack of system-level design (API, UI, deployment considerations)
+Lack of system-level design (monolithic scripts instead of separated API and UI layers)
 
 This project addresses these issues by building a realistic, interpretable, and modular forecasting system that combines machine learning with live data integration and uncertainty-aware predictions.
 
 🧠 Key Concepts & Methodology
 1️⃣ Historical Learning with Machine Learning
-
-The core prediction model is an XGBoost Regressor
-
+Core model: XGBoost Regressor
 Trained on historical weather data
-
 Uses lag-based features (previous 7 days’ temperatures) to capture temporal dependencies
-
 2️⃣ Live Weather Anchoring (Open-Meteo API)
+Backend fetches:
+Temperature
+Wind speed
+Humidity
+Cloud cover
+These values act as Day 0 input for forecasting
+Ensures predictions reflect current real-world conditions
 
-The system fetches current temperature and wind speed from the Open-Meteo API
-
-These live values are used as the starting point (Day 0) for forecasting
-
-This ensures predictions reflect current real-world conditions, not just historical averages
-
-⚠️ Note: Live data is used for anchoring, not for retraining the model in real time.
+⚠️ Live data is used for anchoring, not retraining
 
 3️⃣ Recursive Multi-Step Forecasting (7-Day Prediction)
+Predict Day 1
+Feed prediction back to predict Day 2
+Repeat recursively for 7 days
 
-The model predicts Day 1 temperature
+This is a standard and academically valid time-series approach.
 
-That prediction is fed back as input to predict Day 2
+4️⃣ Uncertainty-Aware Forecasting & Expanded Metrics
 
-This process is repeated recursively for 7 days
+Instead of single-point predictions:
 
-This approach is widely used in time-series forecasting and is academically valid.
+Residual errors are analyzed
+Standard deviation is computed
+A 95% confidence interval is generated
+Uncertainty is dynamically calibrated based on deviation from current conditions
 
-4️⃣ Uncertainty-Aware Forecasting (Key Research Feature)
+Additionally:
 
-Instead of providing only a single temperature value, the system estimates prediction uncertainty:
-
-Residual errors from training are analyzed
-
-Standard deviation of residuals is computed
-
-A 95% confidence interval is generated for each prediction
-
-To improve realism, uncertainty is dynamically calibrated based on deviation from current conditions.
-
-Each forecast is presented as:
-
-Predicted Temperature ± Uncertainty
-Confidence Range (Lower – Upper)
-
-
-This makes the system interpretable and trustworthy, which is a key research contribution.
+ML predictions are merged with 8-day API forecasts
+Provides:
+ 1. Wind Speed
+ 2. Cloud Cover
+ 3. Precipitation
 
 🏗️ System Architecture
-Open-Meteo API
-      │
-      ▼
-Live Weather Anchoring
-      │
-      ▼
-XGBoost ML Model (Historical Learning)
-      │
-      ▼
-Recursive 7-Day Forecast
-      │
-      ▼
-Uncertainty Estimation
-      │
-      ▼
-FastAPI Backend  ──► Streamlit Frontend
+       Open-Meteo API
+             │
+             ▼
+    Live Weather Anchoring
+             │
+             ▼
+ XGBoost ML Model (Historical)
+             │
+             ▼
+  Recursive 7-Day Forecast
+             │
+             ▼
+   Uncertainty Estimation
+             │
+             ▼
+      FastAPI Backend  ──►  React / Tailwind Frontend
 
 🧩 Project Structure
 weather-forecasting/
 │
 ├── app/
-│   ├── main.py              # FastAPI backend (prediction API)
-│   └── streamlit_app.py     # Streamlit UI (7-day forecast)
+│   └── main.py              # FastAPI backend (prediction API & Data Merging)
+│
+├── frontend/                # React / Vite application
+│   ├── src/
+│   │   ├── App.jsx          # Main UI Component with Expandable Accordions
+│   │   ├── index.css        # Tailwind v4 Configuration
+│   │   └── main.jsx
+│   └── package.json
 │
 ├── scripts/
 │   ├── train_model.py       # Model training + uncertainty computation
-│   ├── fetch_current_weather.py  # Live weather fetch (Open-Meteo)
+│   └── fetch_current_weather.py  
 │
 ├── data/
 │   └── weather.csv          # Historical training dataset
@@ -120,123 +117,52 @@ weather-forecasting/
 │   ├── metrics.txt
 │   └── actual_vs_pred.csv
 │
-├── requirements.txt
+├── requirements.txt         # Python dependencies
 └── README.md
 
 🚀 How to Run the Project
-1️⃣ Install dependencies
+1️⃣ Python Backend Setup
 pip install -r requirements.txt
-
-2️⃣ Train the model
+pip install fastapi uvicorn pydantic requests
 python scripts/train_model.py
-
-
-This generates:
-
-Trained model
-
-Scaler
-
-Uncertainty parameter
-
-3️⃣ Run FastAPI backend
 uvicorn app.main:app --reload
+API: http://localhost:8000
+Docs: http://localhost:8000/docs
 
+2️⃣ React Frontend Setup
+cd frontend
+npm install
+npm run dev
 
-API will be available at:
-
-http://127.0.0.1:8000
-
-4️⃣ Run Streamlit UI
-streamlit run app/streamlit_app.py
-
+UI: http://localhost:5173
 📊 Output Example
+Day 3 (Wednesday)
 
-For each day, the system displays:
-
-Predicted Temperature
-
-Uncertainty (± °C)
-
-Confidence Range
-
-Example:
-
-Day 3
 Predicted Temperature: 14.8 °C
 Uncertainty: ±2.1 °C
 Confidence Range: 12.7 – 16.9 °C
 
+Expanded view:
+
+Wind: 12 km/h
+Clouds: 45%
+Precipitation: 0.0 mm
+
 📈 Evaluation Metrics
-
-The model is evaluated using:
-
 Mean Absolute Error (MAE)
-
 Root Mean Square Error (RMSE)
 
-These metrics are stored in:
-
+Stored in:
 results/metrics.txt
 
-🔬 Research Contributions
-
-This project introduces the following research-oriented elements:
-
-Live data anchoring using an external weather API
-
-Recursive multi-step time-series forecasting
-
-Residual-based uncertainty estimation
-
-Dynamic uncertainty calibration
-
-Separation of ML logic, API layer, and UI
-
-These features go beyond basic ML demos and are suitable for academic discussion.
-
-⚠️ Limitations (Important for Research Papers)
-
-The model is trained on historical data and does not retrain automatically
-
-Uncertainty represents model confidence, not meteorological guarantees
-
-Only temperature is forecasted (other variables can be extended)
-
-Recursive forecasting can accumulate error over longer horizons
-
-These limitations are explicitly acknowledged and discussed in the research paper.
+⚠️ Limitations
+ 1. Model does not retrain automatically
+ 2. Uncertainty reflects model confidence, not real-world guarantees
+ 3. Recursive forecasting may accumulate error
 
 🔮 Future Enhancements
-
-Multi-variable forecasting (humidity, rainfall, wind)
-
-Deep learning models (LSTM / GRU)
-
-Automated retraining pipelines
-
-Cloud deployment (AWS / GCP / Azure)
-
-Location-based dynamic forecasting
-
-📄 For Research Paper Generation (Important)
-
-This README is intentionally written so that an AI model can generate a complete research paper using it alone.
-
-It contains:
-
-Problem definition
-
-Methodology
-
-Architecture
-
-Results interpretation
-
-Limitations
-
-Research contributions
-
-🧠 Key Takeaway
-
-This project demonstrates how machine learning, live data integration, and uncertainty modeling can be combined to build a realistic and interpretable weather forecasting system suitable for academic and real-world exploration.
+ 1. Multi-variable forecasting (humidity, wind via ML)
+ 2. Deep learning models (LSTM / GRU)
+ 3. Automated retraining (CI/CD pipelines)
+ 4. Cloud deployment (AWS / GCP / Vercel)
+    
