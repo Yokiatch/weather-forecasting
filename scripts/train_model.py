@@ -1,92 +1,64 @@
-# scripts/train_model.py
-import os
 import pandas as pd
 import numpy as np
+import joblib
+import os
+from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error
-import joblib
+from sklearn.metrics import mean_absolute_error
 
-np.random.seed(42)
+print("1. Loading raw weather data...")
+# Look for weather.csv in the root folder where the command is run
+try:
+    df_raw = pd.read_csv("weather.csv")
+except FileNotFoundError:
+    print("❌ Error: Could not find 'weather.csv'. Make sure it is in your project root folder!")
+    exit()
 
-DATA_PATH = "data/weather.csv"
-if not os.path.exists(DATA_PATH):
-    raise FileNotFoundError(f"{DATA_PATH} not found. Run scripts/fetch_weather_data.py first.")
+print("2. Processing data and generating time lags...")
+# Keep only what we need
+cols_to_keep = ['datetime', 'temp', 'windspeed', 'humidity', 'cloudcover']
+df_processed = df_raw[cols_to_keep].copy()
 
-df = pd.read_csv(DATA_PATH)
-if df.shape[0] == 0:
-    raise ValueError(f"{DATA_PATH} is empty. Provide valid data.")
+# Sort chronologically
+df_processed['datetime'] = pd.to_datetime(df_processed['datetime'])
+df_processed = df_processed.sort_values('datetime').reset_index(drop=True)
 
-# Ensure date column
-if 'date' not in df.columns:
-    df['date'] = pd.date_range(start='2024-01-01', periods=len(df), freq='D')
-else:
-    df['date'] = pd.to_datetime(df['date'], errors='coerce')
-    if df['date'].isna().any():
-        raise ValueError("Some 'date' values could not be parsed. Fix formats in data/weather.csv")
+# Generate 7 days of memory (lags)
+for i in range(1, 8):
+    df_processed[f'temp_lag{i}'] = df_processed['temp'].shift(i)
 
-# Ensure required columns exist
-for col in ['temp', 'humidity', 'windspeed']:
-    if col not in df.columns:
-        raise ValueError(f"Required column '{col}' is missing from {DATA_PATH}")
+# Drop the first 7 days since they lack historical memory
+df_processed = df_processed.dropna().reset_index(drop=True)
 
-df = df.sort_values('date').reset_index(drop=True)
+print("3. Setting up the machine learning model...")
+features = ["humidity", "windspeed", "cloudcover"] + [f"temp_lag{i}" for i in range(1, 8)]
+X = df_processed[features]
+y = df_processed["temp"]
 
-# Create lag features (last 7 days)
-for lag in range(1, 8):
-    df[f'temp_lag{lag}'] = df['temp'].shift(lag)
+# 80/20 Train-Test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
 
-df = df.dropna().reset_index(drop=True)
-if df.shape[0] < 10:
-    raise ValueError("Not enough rows after creating lag features. Need at least 10 rows.")
-
-X = df.drop(columns=['date', 'temp'])
-y = df['temp']
-
-# Split train/test (time-series split: no shuffle)
-train_size = int(0.8 * len(X))
-X_train, X_test = X.iloc[:train_size], X.iloc[train_size:]
-y_train, y_test = y.iloc[:train_size], y.iloc[train_size:]
-
-# Scale
+# Scale features so humidity (0-100) doesn't overpower windspeed (0-20)
 scaler = StandardScaler()
 X_train_scaled = scaler.fit_transform(X_train)
 X_test_scaled = scaler.transform(X_test)
 
-# Train model
-model = XGBRegressor(n_estimators=200, learning_rate=0.05, max_depth=6, random_state=42)
+print("4. Training XGBoost model...")
+model = XGBRegressor(n_estimators=100, learning_rate=0.1, max_depth=5, random_state=42)
 model.fit(X_train_scaled, y_train)
 
-# Evaluate
-pred = model.predict(X_test_scaled)
-mae = mean_absolute_error(y_test, pred)
+# Calculate dynamic uncertainty baseline
+predictions = model.predict(X_test_scaled)
+base_uncertainty = mean_absolute_error(y_test, predictions)
+print(f"   -> Model Mean Absolute Error: {base_uncertainty:.2f} °C")
 
-# FIXED RMSE (compatible with all sklearn versions)
-mse = mean_squared_error(y_test, pred)
-rmse = np.sqrt(mse)
+print("5. Saving model artifacts...")
+# Ensure the models folder exists
+os.makedirs("models", exist_ok=True)
 
-# Calculate prediction uncertainty (standard deviation of errors)
-residuals = y_test - pred
-uncertainty = np.std(residuals)
-print(f"Prediction uncertainty (std dev): {uncertainty:.4f}")
+joblib.dump(model, "models/xgb_model.pkl")
+joblib.dump(scaler, "models/scaler.pkl")
+joblib.dump(base_uncertainty, "models/uncertainty.pkl")
 
-
-print(f"MAE: {mae:.4f}, RMSE: {rmse:.4f}")
-
-# Save model and scaler
-os.makedirs('models', exist_ok=True)
-joblib.dump(model, 'models/xgb_model.pkl', compress=3)
-joblib.dump(scaler, 'models/scaler.pkl', compress=3)
-joblib.dump(uncertainty, 'models/uncertainty.pkl')
-print("Model saved to models/")
-
-# Save metrics and sample predictions
-os.makedirs('results', exist_ok=True)
-with open('results/metrics.txt', 'w') as f:
-    f.write(f"MAE: {mae:.4f}\nRMSE: {rmse:.4f}\n")
-
-df_eval = df.iloc[train_size:].copy()
-df_eval['pred'] = pred
-df_eval.to_csv('results/actual_vs_pred.csv', index=False)
-print("Saved results/actual_vs_pred.csv and results/metrics.txt")
+print("✅ Success! The new model is trained and saved.")
