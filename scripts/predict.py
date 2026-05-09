@@ -12,8 +12,8 @@ except Exception as e:
 
 latest_data = pd.DataFrame([{
     'humidity': 70,
-    'pressure': 1012,
     'windspeed': 8.0,
+    'cloudcover': 50.0,
     'temp_lag1': 24.5,
     'temp_lag2': 25.1,
     'temp_lag3': 24.8,

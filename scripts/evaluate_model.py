@@ -4,15 +4,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-df = pd.read_csv('data/weather.csv')
-df['date'] = pd.to_datetime(df['date'])
-df = df.sort_values('date')
+df = pd.read_csv('weather.csv')
+df['datetime'] = pd.to_datetime(df['datetime'])
+df = df.sort_values('datetime')
 
 for lag in range(1, 8):
     df[f'temp_lag{lag}'] = df['temp'].shift(lag)
 df = df.dropna()
 
-X = df.drop(columns=['date', 'temp'])
+X = df.drop(columns=['datetime', 'temp'])
 y = df['temp']
 
 scaler = joblib.load('models/scaler.pkl')
@@ -26,8 +26,8 @@ rmse = np.sqrt(mean_squared_error(y, pred))
 print(f"MAE: {mae:.2f}, RMSE: {rmse:.2f}")
 
 plt.figure(figsize=(10,5))
-plt.plot(df['date'], y, label='Actual Temperature', linewidth=2)
-plt.plot(df['date'], pred, label='Predicted Temperature', linewidth=2)
+plt.plot(df['datetime'], y, label='Actual Temperature', linewidth=2)
+plt.plot(df['datetime'], pred, label='Predicted Temperature', linewidth=2)
 plt.legend()
 plt.title("Actual vs Predicted Temperature")
 plt.xlabel("Date")

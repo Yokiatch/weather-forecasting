@@ -6,7 +6,7 @@ def get_current_weather():
         "?latitude=28.4744"
         "&longitude=77.5040"
         # Appended new parameters, including weather_code for UI logic
-        "&current=temperature_2m,windspeed_10m,relative_humidity_2m,cloud_cover,precipitation,weather_code"
+        "&current=temperature_2m,wind_speed_10m,relative_humidity_2m,cloud_cover,precipitation,weather_code"
     )
 
     response = requests.get(url, timeout=10)
@@ -16,7 +16,7 @@ def get_current_weather():
     
     return {
         "temperature": data["temperature_2m"],
-        "windspeed": data["windspeed_10m"],
+        "windspeed": data["wind_speed_10m"],
         "humidity": data["relative_humidity_2m"],
         "cloud_cover": data["cloud_cover"],
         "precipitation": data["precipitation"],
