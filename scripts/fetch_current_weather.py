@@ -1,4 +1,5 @@
 import requests
+import time
 
 def get_current_weather():
     url = (
@@ -9,7 +10,12 @@ def get_current_weather():
         "&current=temperature_2m,wind_speed_10m,relative_humidity_2m,cloud_cover,precipitation,weather_code"
     )
 
-    response = requests.get(url, timeout=10)
+    for attempt in range(3):  # retry up to 3 times
+        response = requests.get(url, timeout=10)
+        
+        if response.status_code == 429:
+            time.sleep(2 ** attempt)  # wait 1s, 2s, 4s between retries
+            continue
     response.raise_for_status()
 
     data = response.json()["current"]
