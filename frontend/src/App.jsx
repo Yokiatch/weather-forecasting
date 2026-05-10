@@ -15,7 +15,7 @@ export default function App() {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
-        const response = await axios.get('https://weather-forecasting-production-05f6.up.railway.app/api/current_weather');
+        const response = await axios.get('https://moosetape-weather-forecasting-api.hf.space/api/current_weather');
         setCurrentWeather(response.data.data);
       } catch (error) {
         console.error("Failed to fetch weather:", error);
@@ -37,7 +37,7 @@ export default function App() {
         humidity: currentWeather.humidity,
         cloudcover: currentWeather.cloud_cover
       };
-      const response = await axios.post('https://weather-forecasting-production-05f6.up.railway.app/api/predict_7_days', payload);
+      const response = await axios.post('https://moosetape-weather-forecasting-api.hf.space/api/predict_7_days', payload);
       
       setForecast(response.data.forecast);
     } catch (error) {
