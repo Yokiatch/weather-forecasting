@@ -1,3 +1,13 @@
+---
+title: Weather Forecasting API
+emoji: 🌤️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
+
 Uncertainty-Aware Weather Forecasting System
 
 Live Data Anchored, 7-Day Forecasting with Machine Learning & React
